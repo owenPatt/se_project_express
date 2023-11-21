@@ -15,7 +15,7 @@ const getUsers = async (req, res) => {
 
 // Controller to get a user by _id
 const getUser = async (req, res) => {
-  const userId = req.params.userId;
+  const { userId } = req.params.userId;
   try {
     const user = await User.findById(userId).orFail();
     res.json(user);
@@ -31,8 +31,9 @@ const getUser = async (req, res) => {
         .status(INVALID_DATA)
         .send({ message: "Invalid request was sent to server" });
     }
-    res.status(SERVER_ERROR).send({ message: "Internal server error" });
+    return res.status(SERVER_ERROR).send({ message: "Internal server error" });
   }
+  return res.send();
 };
 
 // Controller to create a new user
@@ -52,8 +53,9 @@ const createUser = async (req, res) => {
         .status(INVALID_DATA)
         .send({ message: "Invalid request was sent to server" });
     }
-    res.status(SERVER_ERROR).send({ message: "Internal server error" });
+    return res.status(SERVER_ERROR).send({ message: "Internal server error" });
   }
+  return res.send();
 };
 
 module.exports = {

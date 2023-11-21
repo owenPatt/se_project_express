@@ -29,13 +29,13 @@ app.use((req, res, next) => {
   next();
 });
 
-//Routes
+// Routes
 app.use("/users", userRoutes);
 app.use("/items", clothingItemRoutes);
 
-//Test route
+// Unknown route
 app.get("/", (req, res) => {
-  res.send("Hello, World!");
+  res.status(404).send("Page not found: 404");
 });
 
 // Start the server on port 3001

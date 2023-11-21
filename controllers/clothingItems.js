@@ -36,13 +36,14 @@ const createClothingItem = async (req, res) => {
         .status(INVALID_DATA)
         .send({ message: "Invalid request was sent to server" });
     }
-    res.status(SERVER_ERROR).send({ message: "Internal server error" });
+    return res.status(SERVER_ERROR).send({ message: "Internal server error" });
   }
+  return res.send();
 };
 
 // Controller to delete a clothing item by _id
 const deleteClothingItem = async (req, res) => {
-  const itemId = req.params.itemId;
+  const { itemId } = req.params.itemId;
 
   try {
     const deletedItem = await ClothingItem.findByIdAndDelete(itemId).orFail();
@@ -59,13 +60,14 @@ const deleteClothingItem = async (req, res) => {
         .status(INVALID_DATA)
         .send({ message: "Invalid request was sent to server" });
     }
-    res.status(SERVER_ERROR).send({ message: "Internal server error" });
+    return res.status(SERVER_ERROR).send({ message: "Internal server error" });
   }
+  return res.send();
 };
 
 // Liking an item
 const likeClothingItem = async (req, res) => {
-  const itemId = req.params.itemId;
+  const { itemId } = req.params.itemId;
   try {
     const updatedClothingItem = await ClothingItem.findByIdAndUpdate(
       itemId,
@@ -86,13 +88,14 @@ const likeClothingItem = async (req, res) => {
         .status(INVALID_DATA)
         .send({ message: "Invalid request was sent to server" });
     }
-    res.status(SERVER_ERROR).send({ message: "Internal server error" });
+    return res.status(SERVER_ERROR).send({ message: "Internal server error" });
   }
+  return res.send();
 };
 
 // Unlike an item
 const unlikeClothingItem = async (req, res) => {
-  const itemId = req.params.itemId;
+  const { itemId } = req.params.itemId;
   try {
     const updatedClothingItem = await ClothingItem.findByIdAndUpdate(
       itemId,
@@ -113,8 +116,9 @@ const unlikeClothingItem = async (req, res) => {
         .status(INVALID_DATA)
         .send({ message: "Invalid request was sent to server" });
     }
-    res.status(SERVER_ERROR).send({ message: "Internal server error" });
+    return res.status(SERVER_ERROR).send({ message: "Internal server error" });
   }
+  return res.send();
 };
 
 module.exports = {

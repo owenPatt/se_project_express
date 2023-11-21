@@ -7,7 +7,6 @@ const {
   getClothingItems,
   createClothingItem,
 } = require("../controllers/clothingItems");
-const { INVALID_DATA, NOT_FOUND, SERVER_ERROR } = require("../utils/errors");
 
 const router = express.Router();
 
