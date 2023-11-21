@@ -6,7 +6,7 @@ const { INVALID_DATA, NOT_FOUND, SERVER_ERROR } = require("../utils/errors");
 const getClothingItems = async (req, res) => {
   try {
     const clothingItems = await ClothingItem.find();
-    res.status(200).json(clothingItems);
+    res.json(clothingItems);
   } catch (error) {
     console.error(error);
     res.status(SERVER_ERROR).send({ message: "Internal server error" });
@@ -47,7 +47,7 @@ const deleteClothingItem = async (req, res) => {
 
   try {
     const deletedItem = await ClothingItem.findByIdAndDelete(itemId).orFail();
-    res.status(200).json(deletedItem);
+    res.json(deletedItem);
   } catch (error) {
     console.error(error);
     if (error.name === "DocumentNotFoundError") {
@@ -75,7 +75,7 @@ const likeClothingItem = async (req, res) => {
       { new: true },
     ).orFail();
 
-    res.status(200).json(updatedClothingItem);
+    res.json(updatedClothingItem);
   } catch (error) {
     console.error(error);
     if (error.name === "DocumentNotFoundError") {
@@ -103,7 +103,7 @@ const unlikeClothingItem = async (req, res) => {
       { new: true },
     ).orFail();
 
-    res.status(200).json(updatedClothingItem);
+    res.json(updatedClothingItem);
   } catch (error) {
     console.error(error);
     if (error.name === "DocumentNotFoundError") {
