@@ -43,7 +43,7 @@ const createClothingItem = async (req, res) => {
 
 // Controller to delete a clothing item by _id
 const deleteClothingItem = async (req, res) => {
-  const { itemId } = req.params.itemId;
+  const { itemId } = req.params;
 
   try {
     const deletedItem = await ClothingItem.findByIdAndDelete(itemId).orFail();
@@ -67,7 +67,7 @@ const deleteClothingItem = async (req, res) => {
 
 // Liking an item
 const likeClothingItem = async (req, res) => {
-  const { itemId } = req.params.itemId;
+  const { itemId } = req.params;
   try {
     const updatedClothingItem = await ClothingItem.findByIdAndUpdate(
       itemId,
@@ -95,7 +95,7 @@ const likeClothingItem = async (req, res) => {
 
 // Unlike an item
 const unlikeClothingItem = async (req, res) => {
-  const { itemId } = req.params.itemId;
+  const { itemId } = req.params;
   try {
     const updatedClothingItem = await ClothingItem.findByIdAndUpdate(
       itemId,

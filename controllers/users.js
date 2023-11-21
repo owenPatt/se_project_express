@@ -15,7 +15,7 @@ const getUsers = async (req, res) => {
 
 // Controller to get a user by _id
 const getUser = async (req, res) => {
-  const { userId } = req.params.userId;
+  const { userId } = req.params;
   try {
     const user = await User.findById(userId).orFail();
     res.json(user);
