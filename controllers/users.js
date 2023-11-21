@@ -1,5 +1,6 @@
 // controllers/userController.js
 const User = require("../models/user");
+const { INVALID_DATA, NOT_FOUND, SERVER_ERROR } = require("../utils/errors");
 
 // Controller to get all users
 const getUsers = async (req, res) => {
@@ -8,7 +9,7 @@ const getUsers = async (req, res) => {
     res.json(users);
   } catch (error) {
     console.error(error);
-    res.status(500).send("Internal Server Error");
+    res.status(SERVER_ERROR).send({ message: "Internal server error" });
   }
 };
 
@@ -16,14 +17,21 @@ const getUsers = async (req, res) => {
 const getUser = async (req, res) => {
   const userId = req.params.userId;
   try {
-    const user = await User.findById(userId);
-    if (!user) {
-      return res.status(404).send("User not found");
-    }
+    const user = await User.findById(userId).orFail();
     res.json(user);
   } catch (error) {
     console.error(error);
-    res.status(500).send("Internal Server Error");
+    if (error.name === "DocumentNotFoundError") {
+      return res
+        .status(NOT_FOUND)
+        .send({ message: "Requested resource not found" });
+    }
+    if (error.name === "ValidationError" || error.name === "CastError") {
+      return res
+        .status(INVALID_DATA)
+        .send({ message: "Invalid request was sent to server" });
+    }
+    res.status(SERVER_ERROR).send({ message: "Internal server error" });
   }
 };
 
@@ -35,12 +43,16 @@ const createUser = async (req, res) => {
       name,
       avatar,
     });
-
     await newUser.save();
     res.status(201).json(newUser);
   } catch (error) {
     console.error(error);
-    res.status(500).send("Internal Server Error");
+    if (error.name === "ValidationError" || error.name === "CastError") {
+      return res
+        .status(INVALID_DATA)
+        .send({ message: "Invalid request was sent to server" });
+    }
+    res.status(SERVER_ERROR).send({ message: "Internal server error" });
   }
 };
 

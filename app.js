@@ -1,6 +1,5 @@
 const express = require("express");
 const mongoose = require("mongoose");
-const bodyParser = require("body-parser");
 const userRoutes = require("./routes/users");
 const clothingItemRoutes = require("./routes/clothingItems");
 
@@ -21,11 +20,18 @@ db.once("open", () => {
 });
 
 // Middleware
-app.use(bodyParser.json());
+app.use(express.json());
+
+app.use((req, res, next) => {
+  req.user = {
+    _id: "655bde669a43d81430c0719a",
+  };
+  next();
+});
 
 //Routes
-app.use("/", userRoutes);
-app.use("/", clothingItemRoutes);
+app.use("/users", userRoutes);
+app.use("/items", clothingItemRoutes);
 
 //Test route
 app.get("/", (req, res) => {
