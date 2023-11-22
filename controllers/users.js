@@ -6,10 +6,10 @@ const { INVALID_DATA, NOT_FOUND, SERVER_ERROR } = require("../utils/errors");
 const getUsers = async (req, res) => {
   try {
     const users = await User.find();
-    res.json(users);
+    return res.send(users);
   } catch (error) {
     console.error(error);
-    res.status(SERVER_ERROR).send({ message: "Internal server error" });
+    return res.status(SERVER_ERROR).send({ message: "Internal server error" });
   }
 };
 
@@ -18,7 +18,7 @@ const getUser = async (req, res) => {
   const { userId } = req.params;
   try {
     const user = await User.findById(userId).orFail();
-    res.json(user);
+    return res.send(user);
   } catch (error) {
     console.error(error);
     if (error.name === "DocumentNotFoundError") {
@@ -33,7 +33,6 @@ const getUser = async (req, res) => {
     }
     return res.status(SERVER_ERROR).send({ message: "Internal server error" });
   }
-  return res.send();
 };
 
 // Controller to create a new user
@@ -45,7 +44,7 @@ const createUser = async (req, res) => {
       avatar,
     });
     await newUser.save();
-    res.status(201).json(newUser);
+    return res.status(201).send(newUser);
   } catch (error) {
     console.error(error);
     if (error.name === "ValidationError" || error.name === "CastError") {
@@ -55,7 +54,6 @@ const createUser = async (req, res) => {
     }
     return res.status(SERVER_ERROR).send({ message: "Internal server error" });
   }
-  return res.send();
 };
 
 module.exports = {

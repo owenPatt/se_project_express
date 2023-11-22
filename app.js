@@ -1,6 +1,7 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const userRoutes = require("./routes/users");
+const { NOT_FOUND } = require("./utils/errors");
 const clothingItemRoutes = require("./routes/clothingItems");
 
 const app = express();
@@ -34,8 +35,8 @@ app.use("/users", userRoutes);
 app.use("/items", clothingItemRoutes);
 
 // Unknown route
-app.get("/", (req, res) => {
-  res.status(404).send("Page not found: 404");
+app.use("/", (req, res) => {
+  res.status(NOT_FOUND).send("Page not found: 404");
 });
 
 // Start the server on port 3001

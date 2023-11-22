@@ -6,10 +6,10 @@ const { INVALID_DATA, NOT_FOUND, SERVER_ERROR } = require("../utils/errors");
 const getClothingItems = async (req, res) => {
   try {
     const clothingItems = await ClothingItem.find();
-    res.json(clothingItems);
+    return res.json(clothingItems);
   } catch (error) {
     console.error(error);
-    res.status(SERVER_ERROR).send({ message: "Internal server error" });
+    return res.status(SERVER_ERROR).send({ message: "Internal server error" });
   }
 };
 
@@ -28,7 +28,7 @@ const createClothingItem = async (req, res) => {
     });
     await newClothingItem.save();
 
-    res.status(201).json(newClothingItem);
+    return res.status(201).send(newClothingItem);
   } catch (error) {
     console.error(error);
     if (error.name === "ValidationError" || error.name === "CastError") {
@@ -38,7 +38,6 @@ const createClothingItem = async (req, res) => {
     }
     return res.status(SERVER_ERROR).send({ message: "Internal server error" });
   }
-  return res.send();
 };
 
 // Controller to delete a clothing item by _id
@@ -47,7 +46,7 @@ const deleteClothingItem = async (req, res) => {
 
   try {
     const deletedItem = await ClothingItem.findByIdAndDelete(itemId).orFail();
-    res.json(deletedItem);
+    return res.send(deletedItem);
   } catch (error) {
     console.error(error);
     if (error.name === "DocumentNotFoundError") {
@@ -62,7 +61,6 @@ const deleteClothingItem = async (req, res) => {
     }
     return res.status(SERVER_ERROR).send({ message: "Internal server error" });
   }
-  return res.send();
 };
 
 // Liking an item
@@ -75,7 +73,7 @@ const likeClothingItem = async (req, res) => {
       { new: true },
     ).orFail();
 
-    res.json(updatedClothingItem);
+    return res.send(updatedClothingItem);
   } catch (error) {
     console.error(error);
     if (error.name === "DocumentNotFoundError") {
@@ -90,7 +88,6 @@ const likeClothingItem = async (req, res) => {
     }
     return res.status(SERVER_ERROR).send({ message: "Internal server error" });
   }
-  return res.send();
 };
 
 // Unlike an item
@@ -103,7 +100,7 @@ const unlikeClothingItem = async (req, res) => {
       { new: true },
     ).orFail();
 
-    res.json(updatedClothingItem);
+    return res.send(updatedClothingItem);
   } catch (error) {
     console.error(error);
     if (error.name === "DocumentNotFoundError") {
@@ -118,7 +115,6 @@ const unlikeClothingItem = async (req, res) => {
     }
     return res.status(SERVER_ERROR).send({ message: "Internal server error" });
   }
-  return res.send();
 };
 
 module.exports = {
