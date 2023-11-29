@@ -1,6 +1,12 @@
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
+
 // controllers/userController.js
 const User = require("../models/user");
+
+// Utils
 const { INVALID_DATA, NOT_FOUND, SERVER_ERROR } = require("../utils/errors");
+const { JWT_SECRET } = require("../utils/config");
 
 // Controller to get all users
 const getUsers = async (req, res) => {
@@ -35,16 +41,24 @@ const getUser = async (req, res) => {
   }
 };
 
-// Controller to create a new user
 const createUser = async (req, res) => {
-  const { name, avatar } = req.body;
+  const { name, avatar, email, password } = req.body;
   try {
-    const newUser = new User({
+    // Hash the password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const newUser = await User.create({
       name,
+      email,
+      password: hashedPassword,
       avatar,
     });
-    await newUser.save();
-    return res.status(201).send(newUser);
+    return res.status(201).send({
+      name: newUser.name,
+      email: newUser.email,
+      avatar: newUser.avatar,
+      _id: newUser._id,
+    });
   } catch (error) {
     console.error(error);
     if (error.name === "ValidationError" || error.name === "CastError") {
@@ -52,6 +66,36 @@ const createUser = async (req, res) => {
         .status(INVALID_DATA)
         .send({ message: "Invalid request was sent to server" });
     }
+    if (error.code === 11000) {
+      return res.status(INVALID_DATA).send({ message: "Email already exists" });
+    }
+    return res.status(SERVER_ERROR).send({ message: "Internal server error" });
+  }
+};
+
+const login = async (req, res) => {
+  const { email, password } = req.body;
+  try {
+    // Find the user by email
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(INVALID_DATA).send({ message: "Invalid login" });
+    }
+
+    // Compare the provided password with the stored hashed password
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+      return res.status(INVALID_DATA).send({ message: "Invalid login" });
+    }
+
+    // Generate a JWT token
+    const token = jwt.sign({ _id: user._id }, JWT_SECRET, {
+      expiresIn: "7d",
+    });
+
+    return res.send({ token });
+  } catch (error) {
+    console.error(error);
     return res.status(SERVER_ERROR).send({ message: "Internal server error" });
   }
 };
@@ -60,4 +104,5 @@ module.exports = {
   getUsers,
   getUser,
   createUser,
+  login,
 };

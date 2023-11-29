@@ -8,6 +8,21 @@ const userSchema = new mongoose.Schema({
     minlength: 2,
     maxlength: 30,
   },
+  email: {
+    type: String,
+    required: true,
+    unique: true,
+    validate: {
+      validator(value) {
+        return validator.isEmail(value);
+      },
+      message: "Please enter a valid email address",
+    },
+  },
+  password: {
+    type: String,
+    required: true,
+  },
   avatar: {
     type: String,
     required: true,
