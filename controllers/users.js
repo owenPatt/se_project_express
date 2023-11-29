@@ -6,7 +6,7 @@ const User = require("../models/user");
 
 // Utils
 const { INVALID_DATA, NOT_FOUND, SERVER_ERROR } = require("../utils/errors");
-const { JWT_SECRET } = require("../utils/config");
+const JWT_SECRET = require("../utils/config");
 
 // Controller to get all users
 const getUsers = async (req, res) => {
