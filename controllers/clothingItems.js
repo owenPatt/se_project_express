@@ -1,6 +1,11 @@
 // Imports
 const ClothingItem = require("../models/clothingItem");
-const { INVALID_DATA, NOT_FOUND, SERVER_ERROR } = require("../utils/errors");
+const {
+  INVALID_DATA,
+  NOT_FOUND,
+  SERVER_ERROR,
+  FORBIDDEN,
+} = require("../utils/errors");
 
 // Controller to get all clothing items
 const getClothingItems = async (req, res) => {
@@ -43,8 +48,16 @@ const createClothingItem = async (req, res) => {
 // Controller to delete a clothing item by _id
 const deleteClothingItem = async (req, res) => {
   const { itemId } = req.params;
+  const userId = req.user;
 
   try {
+    // Find the item to compare the owner and logged in user
+    const item = await ClothingItem.findById(itemId).orFail();
+
+    if (item.owner.toString() !== userId) {
+      return res.status(FORBIDDEN).send({ message: "Forbidden" });
+    }
+
     const deletedItem = await ClothingItem.findByIdAndDelete(itemId).orFail();
     return res.send(deletedItem);
   } catch (error) {

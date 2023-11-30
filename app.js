@@ -1,5 +1,8 @@
 const express = require("express");
 const mongoose = require("mongoose");
+const cors = require("cors");
+
+// Errors
 const { NOT_FOUND } = require("./utils/errors");
 
 // Routes
@@ -14,6 +17,7 @@ const authMiddleware = require("./middleware/auth");
 
 const app = express();
 const { PORT = 3001 } = process.env;
+app.use(cors());
 
 // Connect to MongoDB
 mongoose.connect("mongodb://127.0.0.1:27017/wtwr_db", {
@@ -30,13 +34,6 @@ db.once("open", () => {
 
 // Middleware
 app.use(express.json());
-
-app.use((req, res, next) => {
-  req.user = {
-    _id: "655bde669a43d81430c0719a",
-  };
-  next();
-});
 
 // Login routes
 app.post("/signin", login);
