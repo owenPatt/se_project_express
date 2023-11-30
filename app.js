@@ -13,7 +13,7 @@ const userRoutes = require("./routes/users");
 const { login, createUser } = require("./controllers/users");
 
 // Middleware
-const authMiddleware = require("./middleware/auth");
+const authMiddleware = require("./middlewares/auth");
 
 const app = express();
 const { PORT = 3001 } = process.env;

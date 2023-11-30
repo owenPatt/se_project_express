@@ -48,12 +48,11 @@ const createClothingItem = async (req, res) => {
 // Controller to delete a clothing item by _id
 const deleteClothingItem = async (req, res) => {
   const { itemId } = req.params;
-  const userId = req.user;
+  const userId = req.user._id;
 
   try {
     // Find the item to compare the owner and logged in user
     const item = await ClothingItem.findById(itemId).orFail();
-
     if (item.owner.toString() !== userId) {
       return res.status(FORBIDDEN).send({ message: "Forbidden" });
     }
