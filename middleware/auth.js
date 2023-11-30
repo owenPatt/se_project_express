@@ -4,31 +4,30 @@ const jwt = require("jsonwebtoken");
 const { UNAUTHORIZED } = require("../utils/errors");
 
 // JWT secret
-const { JWT_SECRET } = require("../utils/config");
+const JWT_SECRET = require("../utils/config");
 
 const authMiddleware = (req, res, next) => {
   // Get the token from the headers
-  const token = req.headers.authorization;
+  const { authorization } = req.headers;
 
-  // Check if token exists
-  if (!token) {
-    return res.status(UNAUTHORIZED).json({ message: "Unauthorized" });
+  if (!authorization || !authorization.startsWith("Bearer ")) {
+    return res.status(UNAUTHORIZED).send({ message: "Unauthorized" });
   }
 
+  const token = authorization.replace("Bearer ", "");
+
+  let payload;
   try {
-    // Verify the token
-    const decoded = jwt.verify(token, JWT_SECRET);
-
-    // Attach the decoded token to the request object
-    req.user = decoded;
-
-    // Call the next middleware
-    next();
-
-    return req;
-  } catch (error) {
-    return res.status(UNAUTHORIZED).json({ message: "Unauthorized" });
+    payload = jwt.verify(token, JWT_SECRET);
+  } catch (err) {
+    return res.status(401).send({ message: "Unauthorized" });
   }
+
+  req.user = payload;
+
+  next();
+
+  return -1;
 };
 
 module.exports = authMiddleware;

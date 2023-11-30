@@ -8,23 +8,71 @@ const User = require("../models/user");
 const { INVALID_DATA, NOT_FOUND, SERVER_ERROR } = require("../utils/errors");
 const JWT_SECRET = require("../utils/config");
 
-// Controller to get all users
-const getUsers = async (req, res) => {
+// Controller to get a user by _id
+const getCurrentUser = async (req, res) => {
+  const userId = req.user;
   try {
-    const users = await User.find();
-    return res.send(users);
+    const user = await User.findById(userId).orFail();
+    return res.send(user);
   } catch (error) {
     console.error(error);
+    if (error.name === "DocumentNotFoundError") {
+      return res
+        .status(NOT_FOUND)
+        .send({ message: "Requested resource not found" });
+    }
+    if (error.name === "ValidationError" || error.name === "CastError") {
+      return res
+        .status(INVALID_DATA)
+        .send({ message: "Invalid request was sent to server" });
+    }
     return res.status(SERVER_ERROR).send({ message: "Internal server error" });
   }
 };
 
-// Controller to get a user by _id
-const getUser = async (req, res) => {
-  const { userId } = req.params;
+const updateUser = async (req, res) => {
+  const userId = req.user;
+  const { name, avatar, email, password } = req.body;
   try {
-    const user = await User.findById(userId).orFail();
-    return res.send(user);
+    // Create update object
+    const update = {};
+
+    // Options
+    const options = {
+      runValidators: true,
+      new: true,
+    };
+
+    // Update the user properties
+    if (name) {
+      update.name = name;
+    }
+    if (avatar) {
+      update.avatar = avatar;
+    }
+    if (email) {
+      update.email = email;
+    }
+
+    // Hash the new password if provided
+    if (password) {
+      const hashedPassword = await bcrypt.hash(password, 10);
+      update.password = hashedPassword;
+    }
+
+    // Save the updated user
+    const updatedUser = await User.findOneAndUpdate(
+      { _id: userId },
+      update,
+      options,
+    );
+
+    return res.send({
+      name: updatedUser.name,
+      email: updatedUser.email,
+      avatar: updatedUser.avatar,
+      _id: updatedUser._id,
+    });
   } catch (error) {
     console.error(error);
     if (error.name === "DocumentNotFoundError") {
@@ -75,34 +123,22 @@ const createUser = async (req, res) => {
 
 const login = async (req, res) => {
   const { email, password } = req.body;
-  try {
-    // Find the user by email
-    const user = await User.findOne({ email });
-    if (!user) {
-      return res.status(INVALID_DATA).send({ message: "Invalid login" });
-    }
+  return User.findUserByCredentials(email, password)
+    .then((user) => {
+      const token = jwt.sign({ _id: user._id }, JWT_SECRET, {
+        expiresIn: "7d",
+      });
 
-    // Compare the provided password with the stored hashed password
-    const isPasswordValid = await bcrypt.compare(password, user.password);
-    if (!isPasswordValid) {
-      return res.status(INVALID_DATA).send({ message: "Invalid login" });
-    }
-
-    // Generate a JWT token
-    const token = jwt.sign({ _id: user._id }, JWT_SECRET, {
-      expiresIn: "7d",
+      res.send({ token });
+    })
+    .catch((error) => {
+      res.status(401).send({ message: error.message });
     });
-
-    return res.send({ token });
-  } catch (error) {
-    console.error(error);
-    return res.status(SERVER_ERROR).send({ message: "Internal server error" });
-  }
 };
 
 module.exports = {
-  getUsers,
-  getUser,
+  getCurrentUser,
+  updateUser,
   createUser,
   login,
 };

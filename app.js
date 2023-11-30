@@ -1,8 +1,16 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const { NOT_FOUND } = require("./utils/errors");
+
+// Routes
 const clothingItemRoutes = require("./routes/clothingItems");
+const userRoutes = require("./routes/users");
+
+// Controllers
 const { login, createUser } = require("./controllers/users");
+
+// Middleware
+const authMiddleware = require("./middleware/auth");
 
 const app = express();
 const { PORT = 3001 } = process.env;
@@ -36,6 +44,7 @@ app.post("/signup", createUser);
 
 // Routes
 app.use("/items", clothingItemRoutes);
+app.use("/users", authMiddleware, userRoutes);
 
 // Unknown route
 app.use("/", (req, res) => {
