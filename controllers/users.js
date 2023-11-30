@@ -5,7 +5,12 @@ const jwt = require("jsonwebtoken");
 const User = require("../models/user");
 
 // Utils
-const { INVALID_DATA, NOT_FOUND, SERVER_ERROR } = require("../utils/errors");
+const {
+  INVALID_DATA,
+  NOT_FOUND,
+  SERVER_ERROR,
+  CONFLICT,
+} = require("../utils/errors");
 const JWT_SECRET = require("../utils/config");
 
 // Controller to get a user by _id
@@ -115,7 +120,7 @@ const createUser = async (req, res) => {
         .send({ message: "Invalid request was sent to server" });
     }
     if (error.code === 11000) {
-      return res.status(INVALID_DATA).send({ message: "Email already exists" });
+      return res.status(CONFLICT).send({ message: "Email already exists" });
     }
     return res.status(SERVER_ERROR).send({ message: "Internal server error" });
   }
@@ -132,7 +137,7 @@ const login = async (req, res) => {
       res.send({ token });
     })
     .catch((error) => {
-      res.status(401).send({ message: error.message });
+      res.status(INVALID_DATA).send({ message: error.message });
     });
 };
 
