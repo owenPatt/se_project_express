@@ -37,7 +37,7 @@ const getCurrentUser = async (req, res) => {
 
 const updateUser = async (req, res) => {
   const userId = req.user;
-  const { name, avatar, email, password } = req.body;
+  const { name, avatar } = req.body;
   try {
     // Create update object
     const update = {};
@@ -54,15 +54,6 @@ const updateUser = async (req, res) => {
     }
     if (avatar) {
       update.avatar = avatar;
-    }
-    if (email) {
-      update.email = email;
-    }
-
-    // Hash the new password if provided
-    if (password) {
-      const hashedPassword = await bcrypt.hash(password, 10);
-      update.password = hashedPassword;
     }
 
     // Save the updated user

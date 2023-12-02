@@ -45,7 +45,7 @@ app.use("/users", authMiddleware, userRoutes);
 
 // Unknown route
 app.use("/", (req, res) => {
-  res.status(NOT_FOUND).send("Page not found: 404");
+  res.status(NOT_FOUND).send({ message: "Page not found: 404" });
 });
 
 // Start the server on port 3001

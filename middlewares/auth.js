@@ -20,14 +20,12 @@ const authMiddleware = (req, res, next) => {
   try {
     payload = jwt.verify(token, JWT_SECRET);
   } catch (err) {
-    return res.status(401).send({ message: "Unauthorized" });
+    return res.status(UNAUTHORIZED).send({ message: "Unauthorized" });
   }
 
   req.user = payload;
 
-  next();
-
-  return -1;
+  return next();
 };
 
 module.exports = authMiddleware;
