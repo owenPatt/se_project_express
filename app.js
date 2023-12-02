@@ -1,6 +1,7 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
+const helmet = require("helmet");
 
 // Errors
 const { NOT_FOUND } = require("./utils/errors");
@@ -17,6 +18,10 @@ const authMiddleware = require("./middlewares/auth");
 
 const app = express();
 const { PORT = 3001 } = process.env;
+
+// Security
+// Helmet helps you secure your Express apps by setting various HTTP headers.
+app.use(helmet());
 app.use(cors());
 
 // Connect to MongoDB
