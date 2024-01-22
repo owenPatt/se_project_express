@@ -14,28 +14,29 @@ const {
 const JWT_SECRET = require("../utils/config");
 
 // Controller to get a user by _id
-const getCurrentUser = async (req, res) => {
+const getCurrentUser = async (req, res, next) => {
   const userId = req.user;
   try {
     const user = await User.findById(userId).orFail();
     return res.send(user);
   } catch (error) {
-    console.error(error);
     if (error.name === "DocumentNotFoundError") {
-      return res
-        .status(NOT_FOUND)
-        .send({ message: "Requested resource not found" });
+      error.errorCode(NOT_FOUND);
+      error.message = "Requested resource not found";
+      next(new Error(error));
     }
     if (error.name === "ValidationError" || error.name === "CastError") {
-      return res
-        .status(INVALID_DATA)
-        .send({ message: "Invalid request was sent to server" });
+      error.errorCode(INVALID_DATA);
+      error.message = "Invalid request was sent to server";
+      next(new Error(error));
     }
-    return res.status(SERVER_ERROR).send({ message: "Internal server error" });
+    error.errorCode(SERVER_ERROR);
+    error.message = "Internal server error";
+    return next(new Error(error));
   }
 };
 
-const updateUser = async (req, res) => {
+const updateUser = async (req, res, next) => {
   const userId = req.user;
   const { name, avatar } = req.body;
   try {
@@ -70,22 +71,23 @@ const updateUser = async (req, res) => {
       _id: updatedUser._id,
     });
   } catch (error) {
-    console.error(error);
     if (error.name === "DocumentNotFoundError") {
-      return res
-        .status(NOT_FOUND)
-        .send({ message: "Requested resource not found" });
+      error.errorCode(NOT_FOUND);
+      error.message = "Requested resource not found";
+      next(new Error(error));
     }
     if (error.name === "ValidationError" || error.name === "CastError") {
-      return res
-        .status(INVALID_DATA)
-        .send({ message: "Invalid request was sent to server" });
+      error.errorCode(INVALID_DATA);
+      error.message = "Invalid request was sent to server";
+      next(new Error(error));
     }
-    return res.status(SERVER_ERROR).send({ message: "Internal server error" });
+    error.errorCode(SERVER_ERROR);
+    error.message = "Internal server error";
+    return next(new Error(error));
   }
 };
 
-const createUser = async (req, res) => {
+const createUser = async (req, res, next) => {
   const { name, avatar, email, password } = req.body;
   try {
     // Hash the password
@@ -104,20 +106,23 @@ const createUser = async (req, res) => {
       _id: newUser._id,
     });
   } catch (error) {
-    console.error(error);
     if (error.name === "ValidationError" || error.name === "CastError") {
-      return res
-        .status(INVALID_DATA)
-        .send({ message: "Invalid request was sent to server" });
+      error.errorCode(INVALID_DATA);
+      error.message = "Invalid request was sent to server";
+      next(new Error(error));
     }
     if (error.code === 11000) {
-      return res.status(CONFLICT).send({ message: "Email already exists" });
+      error.errorCode(CONFLICT);
+      error.message = "Email already exists";
+      next(new Error(error));
     }
-    return res.status(SERVER_ERROR).send({ message: "Internal server error" });
+    error.errorCode(SERVER_ERROR);
+    error.message = "Internal server error";
+    return next(new Error(error));
   }
 };
 
-const login = async (req, res) => {
+const login = async (req, res, next) => {
   const { email, password } = req.body;
   return User.findUserByCredentials(email, password)
     .then((user) => {
@@ -128,7 +133,8 @@ const login = async (req, res) => {
       res.send({ token });
     })
     .catch((error) => {
-      res.status(INVALID_DATA).send({ message: error.message });
+      error.errorCode(INVALID_DATA);
+      next(new Error(error));
     });
 };
 

@@ -8,18 +8,19 @@ const {
 } = require("../utils/errors");
 
 // Controller to get all clothing items
-const getClothingItems = async (req, res) => {
+const getClothingItems = async (req, res, next) => {
   try {
     const clothingItems = await ClothingItem.find();
     return res.json(clothingItems);
   } catch (error) {
-    console.error(error);
-    return res.status(SERVER_ERROR).send({ message: "Internal server error" });
+    error.errorCode(SERVER_ERROR);
+    error.message = "Internal server error";
+    return next(new Error(error));
   }
 };
 
 // Controller to create a new clothing item
-const createClothingItem = async (req, res) => {
+const createClothingItem = async (req, res, next) => {
   const { name, weather, imageUrl } = req.body;
   const ownerId = req.user._id;
 
@@ -35,18 +36,19 @@ const createClothingItem = async (req, res) => {
 
     return res.status(201).send(newClothingItem);
   } catch (error) {
-    console.error(error);
     if (error.name === "ValidationError" || error.name === "CastError") {
-      return res
-        .status(INVALID_DATA)
-        .send({ message: "Invalid request was sent to server" });
+      error.errorCode(INVALID_DATA);
+      error.message = "Invalid request was sent to server";
+      next(new Error(error));
     }
-    return res.status(SERVER_ERROR).send({ message: "Internal server error" });
+    error.errorCode(SERVER_ERROR);
+    error.message = "Internal server error";
+    return next(new Error(error));
   }
 };
 
 // Controller to delete a clothing item by _id
-const deleteClothingItem = async (req, res) => {
+const deleteClothingItem = async (req, res, next) => {
   const { itemId } = req.params;
   const userId = req.user._id;
 
@@ -60,23 +62,24 @@ const deleteClothingItem = async (req, res) => {
     const deletedItem = await ClothingItem.findByIdAndDelete(itemId).orFail();
     return res.send(deletedItem);
   } catch (error) {
-    console.error(error);
     if (error.name === "DocumentNotFoundError") {
-      return res
-        .status(NOT_FOUND)
-        .send({ message: "Requested resource not found" });
+      error.errorCode(NOT_FOUND);
+      error.message = "Requested resource not found";
+      next(new Error(error));
     }
     if (error.name === "ValidationError" || error.name === "CastError") {
-      return res
-        .status(INVALID_DATA)
-        .send({ message: "Invalid request was sent to server" });
+      error.errorCode(INVALID_DATA);
+      error.message = "Invalid request was sent to server";
+      next(new Error(error));
     }
-    return res.status(SERVER_ERROR).send({ message: "Internal server error" });
+    error.errorCode(SERVER_ERROR);
+    error.message = "Internal server error";
+    return next(new Error(error));
   }
 };
 
 // Liking an item
-const likeClothingItem = async (req, res) => {
+const likeClothingItem = async (req, res, next) => {
   const { itemId } = req.params;
   try {
     const updatedClothingItem = await ClothingItem.findByIdAndUpdate(
@@ -87,23 +90,24 @@ const likeClothingItem = async (req, res) => {
 
     return res.send(updatedClothingItem);
   } catch (error) {
-    console.error(error);
     if (error.name === "DocumentNotFoundError") {
-      return res
-        .status(NOT_FOUND)
-        .send({ message: "Requested resource not found" });
+      error.errorCode(NOT_FOUND);
+      error.message = "Requested resource not found";
+      next(new Error(error));
     }
     if (error.name === "ValidationError" || error.name === "CastError") {
-      return res
-        .status(INVALID_DATA)
-        .send({ message: "Invalid request was sent to server" });
+      error.errorCode(INVALID_DATA);
+      error.message = "Invalid request was sent to server";
+      next(new Error(error));
     }
-    return res.status(SERVER_ERROR).send({ message: "Internal server error" });
+    error.errorCode(SERVER_ERROR);
+    error.message = "Internal server error";
+    return next(new Error(error));
   }
 };
 
 // Unlike an item
-const unlikeClothingItem = async (req, res) => {
+const unlikeClothingItem = async (req, res, next) => {
   const { itemId } = req.params;
   try {
     const updatedClothingItem = await ClothingItem.findByIdAndUpdate(
@@ -114,18 +118,19 @@ const unlikeClothingItem = async (req, res) => {
 
     return res.send(updatedClothingItem);
   } catch (error) {
-    console.error(error);
     if (error.name === "DocumentNotFoundError") {
-      return res
-        .status(NOT_FOUND)
-        .send({ message: "Requested resource not found" });
+      error.errorCode(NOT_FOUND);
+      error.message = "Requested resource not found";
+      next(new Error(error));
     }
     if (error.name === "ValidationError" || error.name === "CastError") {
-      return res
-        .status(INVALID_DATA)
-        .send({ message: "Invalid request was sent to server" });
+      error.errorCode(INVALID_DATA);
+      error.message = "Invalid request was sent to server";
+      next(new Error(error));
     }
-    return res.status(SERVER_ERROR).send({ message: "Internal server error" });
+    error.errorCode(SERVER_ERROR);
+    error.message = "Internal server error";
+    return next(new Error(error));
   }
 };
 

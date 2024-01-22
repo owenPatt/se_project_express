@@ -3,5 +3,6 @@ module.exports = {
   rules: {
     "no-underscore-dangle": ["error", { allow: ["_id"] }],
     "no-console": ["error", { allow: ["log", "error"] }],
+    "no-unused-vars": ["error", { argsIgnorePattern: "next" }],
   },
 };

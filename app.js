@@ -15,6 +15,7 @@ const { login, createUser } = require("./controllers/users");
 
 // Middleware
 const authMiddleware = require("./middlewares/auth");
+const errorHandler = require("./middlewares/error-handler");
 
 const app = express();
 const { PORT = 3001 } = process.env;
@@ -52,6 +53,9 @@ app.use("/users", authMiddleware, userRoutes);
 app.use("/", (req, res) => {
   res.status(NOT_FOUND).send({ message: "Page not found: 404" });
 });
+
+// Error handler
+app.use(errorHandler);
 
 // Start the server on port 3001
 app.listen(PORT, () => {
