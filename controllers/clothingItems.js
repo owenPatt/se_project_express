@@ -45,15 +45,20 @@ const deleteClothingItem = (req, res, next) => {
 
   ClothingItem.findById(itemId)
     .then((item) => {
+      if (!item) {
+        throw new NotFoundError("Requested resource not found");
+      }
       if (item.owner.toString() !== userId) {
         throw new ForbiddenError("Forbidden");
       }
-
       return ClothingItem.findByIdAndDelete(itemId);
     })
     .then((deletedItem) => res.send(deletedItem))
     .catch((error) => {
-      if (error.name === "DocumentNotFoundError") {
+      if (
+        error.name === "DocumentNotFoundError" ||
+        error.name === "NotFoundError"
+      ) {
         next(new NotFoundError("Requested resource not found"));
       } else if (
         error.name === "ValidationError" ||
