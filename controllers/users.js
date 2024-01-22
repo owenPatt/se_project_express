@@ -5,121 +5,104 @@ const jwt = require("jsonwebtoken");
 const User = require("../models/user");
 
 // Utils
-const {
-  INVALID_DATA,
-  NOT_FOUND,
-  SERVER_ERROR,
-  CONFLICT,
-} = require("../utils/errors");
 const JWT_SECRET = require("../utils/config");
 
+// Error imports
+const BadRequestError = require("../errors/bad-request-error");
+const ConflictError = require("../errors/conflict-error");
+const NotFoundError = require("../errors/not-found-error");
+
 // Controller to get a user by _id
-const getCurrentUser = async (req, res, next) => {
+const getCurrentUser = (req, res, next) => {
   const userId = req.user;
-  try {
-    const user = await User.findById(userId).orFail();
-    return res.send(user);
-  } catch (error) {
-    if (error.name === "DocumentNotFoundError") {
-      error.errorCode(NOT_FOUND);
-      error.message = "Requested resource not found";
-      next(new Error(error));
-    }
-    if (error.name === "ValidationError" || error.name === "CastError") {
-      error.errorCode(INVALID_DATA);
-      error.message = "Invalid request was sent to server";
-      next(new Error(error));
-    }
-    error.errorCode(SERVER_ERROR);
-    error.message = "Internal server error";
-    return next(new Error(error));
-  }
+  User.findById(userId)
+    .orFail()
+    .then((user) => res.send(user))
+    .catch((error) => {
+      if (error.name === "DocumentNotFoundError") {
+        next(new NotFoundError("Requested resource not found"));
+      }
+      if (error.name === "ValidationError" || error.name === "CastError") {
+        next(new BadRequestError("Invalid request was sent to server"));
+      }
+      return next(new Error("Internal server error"));
+    });
 };
 
-const updateUser = async (req, res, next) => {
+const updateUser = (req, res, next) => {
   const userId = req.user;
   const { name, avatar } = req.body;
-  try {
-    // Create update object
-    const update = {};
 
-    // Options
-    const options = {
-      runValidators: true,
-      new: true,
-    };
+  // Create update object
+  const update = {};
 
-    // Update the user properties
-    if (name) {
-      update.name = name;
-    }
-    if (avatar) {
-      update.avatar = avatar;
-    }
+  // Options
+  const options = {
+    runValidators: true,
+    new: true,
+  };
 
-    // Save the updated user
-    const updatedUser = await User.findOneAndUpdate(
-      { _id: userId },
-      update,
-      options,
-    );
-
-    return res.send({
-      name: updatedUser.name,
-      email: updatedUser.email,
-      avatar: updatedUser.avatar,
-      _id: updatedUser._id,
-    });
-  } catch (error) {
-    if (error.name === "DocumentNotFoundError") {
-      error.errorCode(NOT_FOUND);
-      error.message = "Requested resource not found";
-      next(new Error(error));
-    }
-    if (error.name === "ValidationError" || error.name === "CastError") {
-      error.errorCode(INVALID_DATA);
-      error.message = "Invalid request was sent to server";
-      next(new Error(error));
-    }
-    error.errorCode(SERVER_ERROR);
-    error.message = "Internal server error";
-    return next(new Error(error));
+  // Update the user properties
+  if (name) {
+    update.name = name;
   }
+  if (avatar) {
+    update.avatar = avatar;
+  }
+
+  // Save the updated user
+  User.findOneAndUpdate({ _id: userId }, update, options)
+    .then((updatedUser) => {
+      res.send({
+        name: updatedUser.name,
+        email: updatedUser.email,
+        avatar: updatedUser.avatar,
+        _id: updatedUser._id,
+      });
+    })
+    .catch((error) => {
+      if (error.name === "DocumentNotFoundError") {
+        next(new NotFoundError("Requested resource not found"));
+      } else if (
+        error.name === "ValidationError" ||
+        error.name === "CastError"
+      ) {
+        next(new BadRequestError("Invalid request was sent to server"));
+      } else {
+        next(new Error("Internal server error"));
+      }
+    });
 };
 
-const createUser = async (req, res, next) => {
+const createUser = (req, res, next) => {
   const { name, avatar, email, password } = req.body;
-  try {
-    // Hash the password
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    const newUser = await User.create({
-      name,
-      email,
-      password: hashedPassword,
-      avatar,
+  bcrypt
+    .hash(password, 10)
+    .then((hashedPassword) =>
+      User.create({
+        name,
+        email,
+        password: hashedPassword,
+        avatar,
+      }),
+    )
+    .then((newUser) => {
+      res.status(201).send({
+        name: newUser.name,
+        email: newUser.email,
+        avatar: newUser.avatar,
+        _id: newUser._id,
+      });
+    })
+    .catch((error) => {
+      if (error.name === "ValidationError" || error.name === "CastError") {
+        next(new BadRequestError("Invalid request was sent to server"));
+      } else if (error.code === 11000) {
+        next(new ConflictError("Email already exists"));
+      } else {
+        next(new Error("Internal server error"));
+      }
     });
-    return res.status(201).send({
-      name: newUser.name,
-      email: newUser.email,
-      avatar: newUser.avatar,
-      _id: newUser._id,
-    });
-  } catch (error) {
-    if (error.name === "ValidationError" || error.name === "CastError") {
-      error.errorCode(INVALID_DATA);
-      error.message = "Invalid request was sent to server";
-      next(new Error(error));
-    }
-    if (error.code === 11000) {
-      error.errorCode(CONFLICT);
-      error.message = "Email already exists";
-      next(new Error(error));
-    }
-    error.errorCode(SERVER_ERROR);
-    error.message = "Internal server error";
-    return next(new Error(error));
-  }
 };
 
 const login = async (req, res, next) => {
@@ -132,9 +115,8 @@ const login = async (req, res, next) => {
 
       res.send({ token });
     })
-    .catch((error) => {
-      error.errorCode(INVALID_DATA);
-      next(new Error(error));
+    .catch(() => {
+      next(new BadRequestError("Invalid request was sent to server"));
     });
 };
 

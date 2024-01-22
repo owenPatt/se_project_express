@@ -1,137 +1,123 @@
 // Imports
 const ClothingItem = require("../models/clothingItem");
-const {
-  INVALID_DATA,
-  NOT_FOUND,
-  SERVER_ERROR,
-  FORBIDDEN,
-} = require("../utils/errors");
+const BadRequestError = require("../errors/bad-request-error");
+const ForbiddenError = require("../errors/forbidden-error");
+const NotFoundError = require("../errors/not-found-error");
 
 // Controller to get all clothing items
-const getClothingItems = async (req, res, next) => {
-  try {
-    const clothingItems = await ClothingItem.find();
-    return res.json(clothingItems);
-  } catch (error) {
-    error.errorCode(SERVER_ERROR);
-    error.message = "Internal server error";
-    return next(new Error(error));
-  }
+const getClothingItems = (req, res, next) => {
+  ClothingItem.find()
+    .then((clothingItems) => res.json(clothingItems))
+    .catch(() => {
+      next(new Error("Internal Server Error"));
+    });
 };
 
 // Controller to create a new clothing item
-const createClothingItem = async (req, res, next) => {
+const createClothingItem = (req, res, next) => {
   const { name, weather, imageUrl } = req.body;
   const ownerId = req.user._id;
 
-  try {
-    // Creates a new item and saves it
-    const newClothingItem = new ClothingItem({
-      name,
-      weather,
-      imageUrl,
-      owner: ownerId,
-    });
-    await newClothingItem.save();
+  // Creates a new item and saves it
+  const newClothingItem = new ClothingItem({
+    name,
+    weather,
+    imageUrl,
+    owner: ownerId,
+  });
 
-    return res.status(201).send(newClothingItem);
-  } catch (error) {
-    if (error.name === "ValidationError" || error.name === "CastError") {
-      error.errorCode(INVALID_DATA);
-      error.message = "Invalid request was sent to server";
-      next(new Error(error));
-    }
-    error.errorCode(SERVER_ERROR);
-    error.message = "Internal server error";
-    return next(new Error(error));
-  }
+  newClothingItem
+    .save()
+    .then((savedItem) => res.status(201).send(savedItem))
+    .catch((error) => {
+      if (error.name === "ValidationError" || error.name === "CastError") {
+        next(new BadRequestError("Invalid request was sent to server"));
+      } else {
+        next(new Error("Internal server error"));
+      }
+    });
 };
 
 // Controller to delete a clothing item by _id
-const deleteClothingItem = async (req, res, next) => {
+const deleteClothingItem = (req, res, next) => {
   const { itemId } = req.params;
   const userId = req.user._id;
 
-  try {
-    // Find the item to compare the owner and logged in user
-    const item = await ClothingItem.findById(itemId).orFail();
-    if (item.owner.toString() !== userId) {
-      return res.status(FORBIDDEN).send({ message: "Forbidden" });
-    }
+  ClothingItem.findById(itemId)
+    .then((item) => {
+      if (item.owner.toString() !== userId) {
+        throw new ForbiddenError("Forbidden");
+      }
 
-    const deletedItem = await ClothingItem.findByIdAndDelete(itemId).orFail();
-    return res.send(deletedItem);
-  } catch (error) {
-    if (error.name === "DocumentNotFoundError") {
-      error.errorCode(NOT_FOUND);
-      error.message = "Requested resource not found";
-      next(new Error(error));
-    }
-    if (error.name === "ValidationError" || error.name === "CastError") {
-      error.errorCode(INVALID_DATA);
-      error.message = "Invalid request was sent to server";
-      next(new Error(error));
-    }
-    error.errorCode(SERVER_ERROR);
-    error.message = "Internal server error";
-    return next(new Error(error));
-  }
+      return ClothingItem.findByIdAndDelete(itemId);
+    })
+    .then((deletedItem) => res.send(deletedItem))
+    .catch((error) => {
+      if (error.name === "DocumentNotFoundError") {
+        next(new NotFoundError("Requested resource not found"));
+      } else if (
+        error.name === "ValidationError" ||
+        error.name === "CastError"
+      ) {
+        next(new BadRequestError("Invalid request was sent to server"));
+      } else if (error.name === "ForbiddenError") {
+        next(error);
+      } else {
+        next(new Error("Internal server error"));
+      }
+    });
 };
 
 // Liking an item
-const likeClothingItem = async (req, res, next) => {
+const likeClothingItem = (req, res, next) => {
   const { itemId } = req.params;
-  try {
-    const updatedClothingItem = await ClothingItem.findByIdAndUpdate(
-      itemId,
-      { $addToSet: { likes: req.user._id } },
-      { new: true },
-    ).orFail();
-
-    return res.send(updatedClothingItem);
-  } catch (error) {
-    if (error.name === "DocumentNotFoundError") {
-      error.errorCode(NOT_FOUND);
-      error.message = "Requested resource not found";
-      next(new Error(error));
-    }
-    if (error.name === "ValidationError" || error.name === "CastError") {
-      error.errorCode(INVALID_DATA);
-      error.message = "Invalid request was sent to server";
-      next(new Error(error));
-    }
-    error.errorCode(SERVER_ERROR);
-    error.message = "Internal server error";
-    return next(new Error(error));
-  }
+  ClothingItem.findByIdAndUpdate(
+    itemId,
+    { $addToSet: { likes: req.user._id } },
+    { new: true },
+  )
+    .orFail()
+    .then((updatedClothingItem) => {
+      res.send(updatedClothingItem);
+    })
+    .catch((error) => {
+      if (error.name === "DocumentNotFoundError") {
+        next(new NotFoundError("Requested resource not found"));
+      } else if (
+        error.name === "ValidationError" ||
+        error.name === "CastError"
+      ) {
+        next(new BadRequestError("Invalid request was sent to server"));
+      } else {
+        next(new Error("Internal server error"));
+      }
+    });
 };
 
 // Unlike an item
-const unlikeClothingItem = async (req, res, next) => {
+const unlikeClothingItem = (req, res, next) => {
   const { itemId } = req.params;
-  try {
-    const updatedClothingItem = await ClothingItem.findByIdAndUpdate(
-      itemId,
-      { $pull: { likes: req.user._id } },
-      { new: true },
-    ).orFail();
-
-    return res.send(updatedClothingItem);
-  } catch (error) {
-    if (error.name === "DocumentNotFoundError") {
-      error.errorCode(NOT_FOUND);
-      error.message = "Requested resource not found";
-      next(new Error(error));
-    }
-    if (error.name === "ValidationError" || error.name === "CastError") {
-      error.errorCode(INVALID_DATA);
-      error.message = "Invalid request was sent to server";
-      next(new Error(error));
-    }
-    error.errorCode(SERVER_ERROR);
-    error.message = "Internal server error";
-    return next(new Error(error));
-  }
+  ClothingItem.findByIdAndUpdate(
+    itemId,
+    { $pull: { likes: req.user._id } },
+    { new: true },
+  )
+    .orFail()
+    .then((updatedClothingItem) => {
+      res.send(updatedClothingItem);
+    })
+    .catch((error) => {
+      if (error.name === "DocumentNotFoundError") {
+        next(new NotFoundError("Requested resource not found"));
+      } else if (
+        error.name === "ValidationError" ||
+        error.name === "CastError"
+      ) {
+        next(new BadRequestError("Invalid request was sent to server"));
+      } else {
+        next(new Error("Internal server error"));
+      }
+    });
 };
 
 module.exports = {
