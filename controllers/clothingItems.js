@@ -40,10 +40,10 @@ const createClothingItem = (req, res, next) => {
 
 // Controller to delete a clothing item by _id
 const deleteClothingItem = (req, res, next) => {
-  const { itemId } = req.params;
+  const { id } = req.params;
   const userId = req.user._id;
 
-  ClothingItem.findById(itemId)
+  ClothingItem.findById(id)
     .then((item) => {
       if (!item) {
         throw new NotFoundError("Requested resource not found");
@@ -51,7 +51,7 @@ const deleteClothingItem = (req, res, next) => {
       if (item.owner.toString() !== userId) {
         throw new ForbiddenError("Forbidden");
       }
-      return ClothingItem.findByIdAndDelete(itemId);
+      return ClothingItem.findByIdAndDelete(id);
     })
     .then((deletedItem) => res.send(deletedItem))
     .catch((error) => {
@@ -75,9 +75,9 @@ const deleteClothingItem = (req, res, next) => {
 
 // Liking an item
 const likeClothingItem = (req, res, next) => {
-  const { itemId } = req.params;
+  const { id } = req.params;
   ClothingItem.findByIdAndUpdate(
-    itemId,
+    id,
     { $addToSet: { likes: req.user._id } },
     { new: true },
   )
@@ -101,9 +101,9 @@ const likeClothingItem = (req, res, next) => {
 
 // Unlike an item
 const unlikeClothingItem = (req, res, next) => {
-  const { itemId } = req.params;
+  const { id } = req.params;
   ClothingItem.findByIdAndUpdate(
-    itemId,
+    id,
     { $pull: { likes: req.user._id } },
     { new: true },
   )

@@ -2,6 +2,7 @@ const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 const helmet = require("helmet");
+const { errors } = require("celebrate");
 
 // Errors
 const { NOT_FOUND } = require("./utils/errors");
@@ -16,6 +17,10 @@ const { login, createUser } = require("./controllers/users");
 // Middleware
 const authMiddleware = require("./middlewares/auth");
 const errorHandler = require("./middlewares/error-handler");
+const {
+  validateUserInfo,
+  validateAuthentication,
+} = require("./middlewares/validation");
 
 const app = express();
 const { PORT = 3001 } = process.env;
@@ -42,8 +47,8 @@ db.once("open", () => {
 app.use(express.json());
 
 // Login routes
-app.post("/signin", login);
-app.post("/signup", createUser);
+app.post("/signin", validateAuthentication, login);
+app.post("/signup", validateUserInfo, createUser);
 
 // Routes
 app.use("/items", clothingItemRoutes);
@@ -53,6 +58,9 @@ app.use("/users", authMiddleware, userRoutes);
 app.use("/", (req, res) => {
   res.status(NOT_FOUND).send({ message: "Page not found: 404" });
 });
+
+// celebrate error handler
+app.use(errors());
 
 // Error handler
 app.use(errorHandler);
