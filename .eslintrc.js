@@ -5,4 +5,7 @@ module.exports = {
     "no-console": ["error", { allow: ["log", "error"] }],
     "no-unused-vars": ["error", { argsIgnorePattern: "next" }],
   },
+  parserOptions: {
+    ecmaVersion: 2020,
+  },
 };
