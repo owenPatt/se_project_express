@@ -20,10 +20,10 @@ const getCurrentUser = (req, res, next) => {
     .then((user) => res.send(user))
     .catch((error) => {
       if (error.name === "DocumentNotFoundError") {
-        next(new NotFoundError("Requested resource not found"));
+        return next(new NotFoundError("Requested resource not found"));
       }
       if (error.name === "ValidationError" || error.name === "CastError") {
-        next(new BadRequestError("Invalid request was sent to server"));
+        return next(new BadRequestError("Invalid request was sent to server"));
       }
       return next(new Error("Internal server error"));
     });
@@ -115,9 +115,9 @@ const login = async (req, res, next) => {
 
       res.send({ token });
     })
-    .catch(() => {
-      next(new BadRequestError("Invalid request was sent to server"));
-    });
+    .catch(() =>
+      next(new BadRequestError("Invalid request was sent to server")),
+    );
 };
 
 module.exports = {

@@ -3,6 +3,7 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 const helmet = require("helmet");
 const { errors } = require("celebrate");
+const { errorLogger, requestLogger } = require("./middlewares/logger");
 
 // Errors
 const { NOT_FOUND } = require("./utils/errors");
@@ -46,6 +47,8 @@ db.once("open", () => {
 // Middleware
 app.use(express.json());
 
+app.use(requestLogger);
+
 // Login routes
 app.post("/signin", validateAuthentication, login);
 app.post("/signup", validateUserInfo, createUser);
@@ -58,6 +61,9 @@ app.use("/users", authMiddleware, userRoutes);
 app.use("/", (req, res) => {
   res.status(NOT_FOUND).send({ message: "Page not found: 404" });
 });
+
+// Error Logger
+app.use(errorLogger);
 
 // celebrate error handler
 app.use(errors());
