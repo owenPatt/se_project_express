@@ -6,7 +6,7 @@ const { errors } = require("celebrate");
 const { errorLogger, requestLogger } = require("./middlewares/logger");
 
 // Errors
-const { NOT_FOUND } = require("./utils/errors");
+const NotFoundError = require("./errors/not-found-error");
 
 // Routes
 const clothingItemRoutes = require("./routes/clothingItems");
@@ -65,8 +65,8 @@ app.use("/items", clothingItemRoutes);
 app.use("/users", authMiddleware, userRoutes);
 
 // Unknown route
-app.use("/", (req, res) => {
-  res.status(NOT_FOUND).send({ message: "Page not found: 404" });
+app.use("/", (req, res, next) => {
+  next(new NotFoundError("Page not found: 404"));
 });
 
 // Error Logger
