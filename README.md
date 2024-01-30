@@ -5,6 +5,11 @@ application. Once completed, user authenication will also be handled here.
 
 Recently added user authentication which will allow people to register and login to their WTWR account.
 
+## Accessing
+
+- api.wtwr.haoqiw.com : How to access the backend application
+- www.wtwr.haoqiw.com / wtwr.haoqiw.com : How to access the frontend application
+
 ## Technologies and Techniques used
 
 - Back end code meant to be ran on servers with Node.js
