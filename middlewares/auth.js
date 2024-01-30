@@ -4,7 +4,10 @@ const jwt = require("jsonwebtoken");
 const { UNAUTHORIZED } = require("../utils/errors");
 
 // JWT secret
-const JWT_SECRET = require("../utils/config");
+const JWT_SECRET =
+  process.env.MODE_ENV === "production"
+    ? process.env.JWT_SECRET
+    : require("../utils/config");
 
 const authMiddleware = (req, res, next) => {
   // Get the token from the headers

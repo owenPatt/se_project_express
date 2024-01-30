@@ -5,7 +5,10 @@ const jwt = require("jsonwebtoken");
 const User = require("../models/user");
 
 // Utils
-const JWT_SECRET = require("../utils/config");
+const JWT_SECRET =
+  process.env.MODE_ENV === "production"
+    ? process.env.JWT_SECRET
+    : require("../utils/config");
 
 // Error imports
 const BadRequestError = require("../errors/bad-request-error");
