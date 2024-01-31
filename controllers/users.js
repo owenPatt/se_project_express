@@ -14,6 +14,7 @@ const JWT_SECRET =
 const BadRequestError = require("../errors/bad-request-error");
 const ConflictError = require("../errors/conflict-error");
 const NotFoundError = require("../errors/not-found-error");
+const UnauthorizedError = require("../errors/unauthorized-error");
 
 // Controller to get a user by _id
 const getCurrentUser = (req, res, next) => {
@@ -118,9 +119,13 @@ const login = async (req, res, next) => {
 
       res.send({ token });
     })
-    .catch(() =>
-      next(new BadRequestError("Invalid request was sent to server")),
-    );
+    .catch((err) => {
+      if (err.message === "Incorrect email or password") {
+        next(new UnauthorizedError("incorrect email or password"));
+      } else {
+        next(new BadRequestError("Invalid request was sent to server"));
+      }
+    });
 };
 
 module.exports = {
